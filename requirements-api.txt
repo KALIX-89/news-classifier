@@ -1,0 +1,10 @@
+# ---------------------------------------------------------------
+# Minimal requirements for the Docker image (serving only).
+# No MLflow, datasets, matplotlib, pytest, etc. -> smaller image.
+# torch (CPU build) is installed separately in the Dockerfile.
+# ---------------------------------------------------------------
+transformers>=4.44
+fastapi>=0.112
+uvicorn>=0.30
+pydantic>=2.8
+boto3>=1.34

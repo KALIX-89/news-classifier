@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+
+# ML artifacts (too large for git; tracked in MLflow / S3 instead)
+models/*
+!models/.gitkeep
+mlruns/
+mlflow.db
+reports/
+
+# Hugging Face cache, IDE, OS
+.cache/
+.vscode/
+.idea/
+.DS_Store
+.env

@@ -1,0 +1,36 @@
+# ---------------------------------------------------------------
+# Full development requirements (training + API + tests + AWS).
+#
+# torch is listed WITHOUT a CUDA/CPU suffix on purpose:
+#   - On a GPU laptop, install the CUDA build first, e.g.
+#       pip install torch --index-url https://download.pytorch.org/whl/cu128
+#   - In Docker / CI, install the small CPU build first, e.g.
+#       pip install torch --index-url https://download.pytorch.org/whl/cpu
+# pip then sees torch is already installed and keeps that build.
+# ---------------------------------------------------------------
+
+# Deep learning
+torch>=2.4
+transformers>=4.44
+datasets>=2.20
+
+# Classic ML / data helpers
+scikit-learn>=1.5
+pandas>=2.2
+numpy>=1.26
+matplotlib>=3.8
+
+# Experiment tracking
+mlflow>=2.15
+
+# Serving
+fastapi>=0.112
+uvicorn>=0.30
+pydantic>=2.8
+
+# Cloud (AWS S3)
+boto3>=1.34
+
+# Testing
+pytest>=8.0
+httpx>=0.27   # needed by FastAPI's TestClient
