@@ -86,3 +86,10 @@ if __name__ == "__main__":
     splits = make_splits(raw, cfg)
     print({k: len(v) for k, v in splits.items()})
     print("Example:", splits["train"][0])
+
+    # Class balance check with pandas: are all 4 classes roughly equally frequent?
+    from src.config import LABELS
+    df = splits["train"].to_pandas()
+    df["category"] = df["label"].map(dict(enumerate(LABELS)))
+    print("\nClass distribution (train):\n", df["category"].value_counts())
+    print("\nAverage words per text:", round(df["text"].str.split().str.len().mean(), 1))
