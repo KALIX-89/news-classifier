@@ -1,0 +1,13 @@
+# Keep the build context small: only src/, api/ and requirements are needed
+.venv/
+.git/
+models/
+mlruns/
+mlflow.db
+reports/
+tests/
+docs/
+airflow/
+deploy/
+**/__pycache__/
+.pytest_cache/

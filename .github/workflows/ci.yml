@@ -1,0 +1,45 @@
+# Continuous Integration: on every push / pull request GitHub starts a fresh
+# Linux machine, installs everything, runs the tests and builds the Docker image.
+# If any step fails, the commit gets a red X.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies (CPU-only torch keeps it fast)
+        run: |
+          pip install torch --index-url https://download.pytorch.org/whl/cpu
+          pip install -r requirements.txt
+
+      - name: Run tests
+        run: pytest -v
+
+  docker:
+    needs: test            # only build the image if the tests passed
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker build -t news-classifier:${{ github.sha }} .
+
+      - name: Smoke test - container starts and /health answers
+        run: |
+          docker run -d --name api -p 8000:8000 news-classifier:${{ github.sha }}
+          for i in $(seq 1 30); do curl -sf http://localhost:8000/health && exit 0; sleep 2; done
+          docker logs api; exit 1

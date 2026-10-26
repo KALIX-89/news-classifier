@@ -11,6 +11,7 @@ import argparse
 import random
 import time
 from dataclasses import asdict
+from pathlib import Path
 
 import mlflow
 import numpy as np
@@ -71,7 +72,8 @@ def train_one_epoch(model, loader, optimizer, scheduler, device) -> float:
     return total_loss / len(loader)
 
 
-def train(cfg: TrainConfig, run_name: str | None = None, register: bool = False) -> dict:
+def train(cfg: TrainConfig, run_name: str | None = None, register: bool = False,
+          output_dir: Path = MODEL_DIR) -> dict:
     set_seed(cfg.seed)
     device = get_device()
     print(f"Device: {device}")
@@ -125,7 +127,7 @@ def train(cfg: TrainConfig, run_name: str | None = None, register: bool = False)
         print(f"\nModel saved to {MODEL_DIR}")
 
         # Log the model to MLflow (and optionally register it in the Model Registry).
-        mlflow.log_artifacts(str(MODEL_DIR), artifact_path="model")
+        mlflow.log_artifacts(str(output_dir), artifact_path="model")
         if register:
             # Point the registry at the folder of model files we just logged.
             model_uri = f"{mlflow.active_run().info.artifact_uri}/model"
@@ -144,6 +146,7 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--batch-size", type=int)
     p.add_argument("--lr", type=float)
     p.add_argument("--run-name", type=str, help="name shown in the MLflow UI")
+    p.add_argument("--output-dir", type=Path, default=MODEL_DIR, help="where to save the model")
     p.add_argument("--register", action="store_true", help="register model in MLflow Model Registry")
     p.add_argument("--skip-if-exists", action="store_true",
                    help="if models/model already exists, skip training and only evaluate")
@@ -166,7 +169,7 @@ def main():
 
     run_name = args.run_name or f"{args.preset}-lr{cfg.lr:g}"
     print(f"Config: {cfg}")
-    train(cfg, run_name=run_name, register=args.register)
+    train(cfg, run_name=run_name, register=args.register, output_dir=args.output_dir)
 
 
 if __name__ == "__main__":

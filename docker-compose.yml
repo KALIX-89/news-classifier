@@ -1,0 +1,27 @@
+# Start everything with:  docker compose up --build
+#   API       -> http://localhost:8000/docs
+#   MLflow UI -> http://localhost:5000
+services:
+  api:
+    build: .
+    image: news-classifier:latest
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./models:/app/models:ro          # trained model from the host (read-only)
+    environment:
+      # Set to load the model from S3 instead, e.g. s3://my-bucket/news-classifier/model
+      - MODEL_S3_URI=${MODEL_S3_URI:-}
+    restart: unless-stopped
+
+  mlflow:
+    image: ghcr.io/mlflow/mlflow:v3.17.2
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./mlflow.db:/mlflow/mlflow.db    # run metadata (params, metrics, registry)
+      - ./mlruns:/mlflow/mlruns          # artifacts (model files, plots)
+    command: >
+      mlflow server --host 0.0.0.0 --port 5000
+      --backend-store-uri sqlite:////mlflow/mlflow.db
+      --allowed-hosts "*"

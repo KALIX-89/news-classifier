@@ -1,0 +1,3 @@
+# Always use Linux line endings (Dockerfiles / YAML / shell run on Linux)
+* text=auto eol=lf
+*.png binary
