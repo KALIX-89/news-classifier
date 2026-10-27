@@ -116,9 +116,17 @@ pytest -v                               # 13 tests
 ### 5. Docker
 ```bash
 docker build -t news-classifier .
-docker run -p 8000:8000 -v ./models:/app/models:ro news-classifier
-docker compose up --build              # API on :8000 + MLflow UI on :5000
+docker run -d --name news-api -p 8000:8000 -v ./models:/app/models:ro news-classifier
+docker compose up -d --build           # API on :8000 + MLflow UI on :5000
+docker compose down                    # stop everything
 ```
+Measured on my laptop: image **1.78 GB** (CPU-only PyTorch), container ready in ~5 s,
+**~25 ms per prediction** on CPU, **~300 MiB RAM**, Docker health status `healthy`.
+
+To see MLflow *artifacts* (plots, model files) in the compose MLflow UI, create a local
+`.env` file (gitignored) with the absolute path MLflow recorded, e.g.
+`MLRUNS_PATH=/C:/Users/<you>/Desktop/classifier/mlruns`. Params, metrics and the registry
+work without it.
 
 ### 6. AWS
 See [deploy/AWS_DEPLOY.md](deploy/AWS_DEPLOY.md): S3 bucket → upload model → EC2 with an IAM role → `docker run -e MODEL_S3_URI=...` → curl → **stop the instance**.

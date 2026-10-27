@@ -15,6 +15,7 @@ with everyday analogies. At the end there is an **Interview** section in German.
 | FAST experiments (2k samples, 1 epoch) | LR 5e-5: val 0.9040, test 0.8840 · LR 2e-5: val 0.8820, test 0.8840 |
 | Training time | ~5 min (FULL) / ~1 min (FAST) on an RTX 4060 laptop GPU |
 | Tests | 13 pytest tests, ~5 s |
+| Docker image | 1.78 GB (CPU-only PyTorch), ready in ~5 s, ~25 ms per prediction, ~300 MiB RAM, status `healthy` |
 
 ---
 
@@ -182,6 +183,17 @@ so everyone knows which model is live and you can roll back.
 Unlike a virtual machine, containers share the host's OS kernel, so they're lightweight and start in seconds.
 **Volume** (`-v ./models:/app/models`) = a folder from the host shared into the container.
 **docker compose**: one YAML file that starts several containers together (here: API + MLflow UI) with one command, `docker compose up`.
+
+**A real problem I hit (good interview story):** in the compose MLflow UI, metrics showed up but the plots and model files gave 404.
+The reason: MLflow had stored the artifact location as an absolute **Windows** path (`file:///C:/Users/...`), which doesn't exist inside a **Linux** container.
+The fix: mount `./mlruns` normally and, at container start, create a symlink at that Windows-style path pointing to the mounted folder (path set via a gitignored `.env` file).
+The production fix would be an MLflow **tracking server with an artifact store in S3**, so artifact paths don't depend on any one machine.
+
+**Docker commands used:**
+`docker build -t news-classifier .` (build the image from the Dockerfile) · `docker images` (list images and sizes) ·
+`docker run -d --name news-api -p 8000:8000 -v ./models:/app/models:ro news-classifier` (start a container in the background, map the port, mount the model read-only) ·
+`docker ps` (running containers + health) · `docker logs news-api` (container output) · `docker stats` (CPU/RAM) · `docker rm -f news-api` (stop + delete the container, the image stays) ·
+`docker compose up -d --build` / `docker compose ps` / `docker compose logs mlflow` / `docker compose down`.
 
 **AWS EC2** (Elastic Compute Cloud): rent a virtual computer in Amazon's data centre by the hour. We use a small free-tier `t3.micro`.
 **S3** (Simple Storage Service): unlimited cloud storage for files ("objects") in "buckets". It's the standard place for models and datasets: cheap and durable.

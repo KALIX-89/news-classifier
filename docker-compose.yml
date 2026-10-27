@@ -20,8 +20,19 @@ services:
       - "5000:5000"
     volumes:
       - ./mlflow.db:/mlflow/mlflow.db    # run metadata (params, metrics, registry)
-      - ./mlruns:/mlflow/mlruns          # artifacts (model files, plots)
-    command: >
-      mlflow server --host 0.0.0.0 --port 5000
-      --backend-store-uri sqlite:////mlflow/mlflow.db
-      --allowed-hosts "*"
+      - ./mlruns:/mlflow/mlruns:ro       # artifacts (model files, plots)
+    environment:
+      # MLflow stored the artifact locations as absolute HOST paths
+      # (e.g. file:///C:/Users/<you>/Desktop/classifier/mlruns). Inside this Linux
+      # container we create a shortcut (symlink) at that path -> /mlflow/mlruns.
+      # Set it in a local, gitignored .env file:
+      #   MLRUNS_PATH=/C:/Users/<you>/Desktop/classifier/mlruns
+      - MLRUNS_PATH=${MLRUNS_PATH:-}
+    command:
+      - sh
+      - -c
+      - |
+        if [ -n "$$MLRUNS_PATH" ]; then
+          mkdir -p "$$(dirname "$$MLRUNS_PATH")" && ln -sfn /mlflow/mlruns "$$MLRUNS_PATH"
+        fi
+        exec mlflow server --host 0.0.0.0 --port 5000 --backend-store-uri sqlite:////mlflow/mlflow.db --allowed-hosts "*"
