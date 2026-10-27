@@ -1,4 +1,4 @@
-# news-classifier — Everything Explained
+# news-classifier : Everything Explained
 
 This document explains **every file and every concept** in the project in plain language,
 with everyday analogies. At the end there is an **Interview** section in German.
